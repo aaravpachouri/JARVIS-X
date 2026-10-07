@@ -2,7 +2,7 @@
 
 > A modular desktop AI agent combining conversational AI, voice interaction, computer automation, memory, vision, and business discovery.
 
-![JARVIS X](jarvis_screen.png)
+![JARVIS X](jarvis_agent_screen.png)
 
 ## Overview
 
@@ -361,20 +361,26 @@ Automation
 Task Planning
 +
 External Tools
-
 into a single modular system.
+
 Project Philosophy
 JARVIS X is being developed around a few principles.
+
 Modularity
 Each major capability should remain independently extensible.
+
 Reliability
 Tasks should be observable, interruptible, and recoverable where possible.
+
 Reproducibility
 The project should become increasingly easier to install, test, and understand.
+
 Responsible Automation
 Computer-control capabilities should be designed with explicit user control and failure handling.
+
 License
 License information will be finalized after the dependency and third-party component audit.
+
 Author
 Aarav Pachouri
 Student interested in Artificial Intelligence, Machine Learning, Software Engineering, and AI research.
