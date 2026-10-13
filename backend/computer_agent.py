@@ -6,7 +6,10 @@ import time
 from collections import deque
 from pathlib import Path
 from ai.local_client import LocalAIClient
-from backend.agent_run_gate import GLOBAL_COMPUTER_AGENT_RUN_GATE
+from backend.agent_run_gate import (
+    ComputerAgentBusyError,
+    GLOBAL_COMPUTER_AGENT_RUN_GATE,
+)
 from backend.consecutive_failure_guard import ConsecutiveFailureGuard
 
 from automation.executors.engine import AutomationEngine
@@ -197,13 +200,14 @@ class ComputerUseAgent:
         if not goal:
             return "No computer task received, sir."
 
-        if not GLOBAL_COMPUTER_AGENT_RUN_GATE.try_enter():
-            message = (
-                "Another computer task is already running, sir. "
-                "Wait for it to finish or cancel it before starting another."
-            )
+        try:
+            GLOBAL_COMPUTER_AGENT_RUN_GATE.enter_or_raise()
+        except ComputerAgentBusyError:
+            # Raise a typed failure so the executor cannot mistake a busy
+            # rejection for a normal completion message. Do not touch state:
+            # it may belong to the task that currently holds the global gate.
             print("[ComputerAgent] Rejected overlapping run:", goal)
-            return message
+            raise
 
         try:
             return self._run_locked(goal)
