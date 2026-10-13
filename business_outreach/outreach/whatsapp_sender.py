@@ -37,6 +37,17 @@ class WhatsAppSender:
         message: str,
     ) -> bool:
 
+        if lead is None:
+            print("[WhatsApp] A lead is required.")
+            return False
+
+        if getattr(lead, "approval_required", True) and not getattr(lead, "approved", False):
+            print(
+                f"[WhatsApp] Outreach blocked for {lead.name}: "
+                "explicit lead approval is required."
+            )
+            return False
+
         phone = self._normalize_phone(
             lead.phone
         )
@@ -127,7 +138,7 @@ class WhatsAppSender:
 
             return False
 
-       ####################################################
+    ####################################################
     # NORMALIZE PHONE
     ####################################################
 
@@ -184,32 +195,5 @@ class WhatsAppSender:
                 self.country_code
                 + digits
             )
-
-        return ""
-
-        ####################################################
-        # ALREADY HAS INDIA COUNTRY CODE
-        ####################################################
-
-        if digits.startswith(
-            self.country_code
-        ):
-
-            return digits
-
-        ####################################################
-        # STANDARD 10 DIGIT INDIAN NUMBER
-        ####################################################
-
-        if len(digits) == 10:
-
-            return (
-                self.country_code
-                + digits
-            )
-
-        ####################################################
-        # UNKNOWN FORMAT
-        ####################################################
 
         return ""
