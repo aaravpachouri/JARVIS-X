@@ -1,4 +1,14 @@
-from ai.local_client import LocalAIClient
+import sys
+from types import ModuleType
+from unittest.mock import patch
+
+
+# Ollama is the external inference runtime; these tests mock its chat call.
+ollama_stub = ModuleType("ollama")
+ollama_stub.chat = lambda **kwargs: None
+
+with patch.dict(sys.modules, {"ollama": ollama_stub}):
+    from ai.local_client import LocalAIClient
 
 
 def test_chat_uses_expanded_context_window(monkeypatch):
