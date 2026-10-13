@@ -1,14 +1,17 @@
-from types import SimpleNamespace
+class ActionTypeStub:
+    def __init__(self, name):
+        self.name = name
+
 
 from backend.agent_policy import AgentPolicy
 
 
 class FakeEngine:
     routes = {
-        SimpleNamespace(name="RUN_COMMAND"): object(),
-        SimpleNamespace(name="RUN_PYTHON"): object(),
-        SimpleNamespace(name="OPEN_URL"): object(),
-        SimpleNamespace(name="DELETE_FILE"): object(),
+        ActionTypeStub("RUN_COMMAND"): object(),
+        ActionTypeStub("RUN_PYTHON"): object(),
+        ActionTypeStub("OPEN_URL"): object(),
+        ActionTypeStub("DELETE_FILE"): object(),
     }
 
 
