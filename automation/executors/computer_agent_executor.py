@@ -7,6 +7,8 @@ from automation.computer_task_contract import (
     create_computer_task,
 )
 
+from backend.agent_run_gate import ComputerAgentBusyError
+
 from backend.computer_agent import (
     ComputerUseAgent,
 )
@@ -282,6 +284,21 @@ class ComputerAgentExecutor(
 
             result = self.agent.run(
                 computer_task.goal
+            )
+
+        except ComputerAgentBusyError as exc:
+            # A busy rejection is a failed request, not an agent completion.
+            # Avoid consulting shared agent state because it belongs to the
+            # active run that currently owns the global gate.
+            computer_task.fail(str(exc))
+            return StepResult(
+                success=False,
+                error=str(exc),
+                executor=self.name,
+                metadata={
+                    "busy": True,
+                    "computer_task": computer_task.to_dict(),
+                },
             )
 
         except Exception as exc:
