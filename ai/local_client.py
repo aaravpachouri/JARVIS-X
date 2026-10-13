@@ -11,10 +11,13 @@ class LocalAIClient:
     ##################################################
 
     MODEL = "qwen3-vl:4b"
+    REQUEST_TIMEOUT_SECONDS = 180
 
     def __init__(self):
 
         self.model = self.MODEL
+        # Bound inference time so a stalled Ollama request cannot freeze a mission forever.
+        self.client = ollama.Client(timeout=self.REQUEST_TIMEOUT_SECONDS)
 
         print(
             f"[LocalAI] Model: {self.model}"
@@ -48,7 +51,7 @@ class LocalAIClient:
             }
         )
 
-        response = ollama.chat(
+        response = self.client.chat(
             model=self.model,
             messages=messages,
             options={
@@ -99,7 +102,7 @@ class LocalAIClient:
             }
         )
 
-        response = ollama.chat(
+        response = self.client.chat(
             model=self.model,
             messages=messages,
             options={

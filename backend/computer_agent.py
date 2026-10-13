@@ -454,8 +454,14 @@ class ComputerUseAgent:
 
             try:
 
+                print("[ComputerAgent] OBSERVE: Capturing screenshot...")
+                observation_started = time.monotonic()
                 screenshot = (
                     self._capture_observation()
+                )
+                print(
+                    "[ComputerAgent] OBSERVE: Screenshot ready "
+                    f"({time.monotonic() - observation_started:.1f}s)."
                 )
 
             except Exception as exc:
@@ -537,6 +543,12 @@ class ComputerUseAgent:
 
             try:
 
+                print(
+                    "[ComputerAgent] THINK: Sending screenshot and prompt "
+                    f"to {self.MODEL_NAME} (timeout: "
+                    f"{getattr(self.ai, 'REQUEST_TIMEOUT_SECONDS', 180)}s)..."
+                )
+                inference_started = time.monotonic()
                 decision = (
                     self.ai.vision_json(
                         screenshot,
@@ -546,6 +558,10 @@ class ComputerUseAgent:
                             context
                         )
                     )
+                )
+                print(
+                    "[ComputerAgent] THINK: Model response received "
+                    f"({time.monotonic() - inference_started:.1f}s)."
                 )
 
                 if self.is_cancelled():
