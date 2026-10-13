@@ -1,4 +1,25 @@
-from types import SimpleNamespace
+"""Regression tests for the adapter without loading the desktop runtime.
+
+The full ComputerUseAgent imports OS-specific automation dependencies. These
+contract tests inject a lightweight placeholder because they always supply a
+fake agent and must remain runnable in the dependency-light CI environment.
+"""
+import sys
+from types import ModuleType, SimpleNamespace
+
+
+computer_agent_module = ModuleType("backend.computer_agent")
+
+
+class UnusedComputerUseAgent:
+    def __init__(self, *args, **kwargs):
+        raise AssertionError(
+            "Tests must inject FakeComputerAgent instead of creating the real agent."
+        )
+
+
+computer_agent_module.ComputerUseAgent = UnusedComputerUseAgent
+sys.modules.setdefault("backend.computer_agent", computer_agent_module)
 
 from automation.executors.computer_agent_executor import ComputerAgentExecutor
 from backend.task_orchestrator import TaskStep
