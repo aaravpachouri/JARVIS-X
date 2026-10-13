@@ -305,6 +305,7 @@ class ComputerAgentExecutor(
                         "_cancel_reason",
                         "",
                     )
+                    or str(exc).strip()
                     or "Computer task was cancelled."
                 )
 
