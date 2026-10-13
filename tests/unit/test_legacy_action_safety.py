@@ -26,4 +26,4 @@ def test_legacy_execution_blocks_shell_python_and_destructive_actions():
 def test_legacy_execution_allows_non_sensitive_actions():
     actions = [action("OPEN_URL"), action("SEARCH_WEB")]
 
-    assert AIController._legacy_blocked_actions(actions) == []
+    assert find_legacy_blocked_actions(actions) == []
