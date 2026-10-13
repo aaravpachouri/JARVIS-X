@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import ollama
@@ -10,12 +11,14 @@ class LocalAIClient:
     # CONFIGURATION
     ##################################################
 
-    MODEL = "qwen3-vl:4b"
+    # Keep the default aligned with the model tag used by the computer agent.
+    # Override with JARVIS_LOCAL_MODEL when a different installed Ollama model is desired.
+    MODEL = "qwen3-vl:4b-instruct"
     REQUEST_TIMEOUT_SECONDS = 180
 
     def __init__(self):
 
-        self.model = self.MODEL
+        self.model = os.getenv("JARVIS_LOCAL_MODEL", self.MODEL).strip() or self.MODEL
         # Bound inference time so a stalled Ollama request cannot freeze a mission forever.
         self.client = ollama.Client(timeout=self.REQUEST_TIMEOUT_SECONDS)
 
