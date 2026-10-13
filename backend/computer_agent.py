@@ -232,23 +232,6 @@ class ComputerUseAgent:
         self.recovery.reset()
 
         ########################################################
-        # FAST FILESYSTEM FIND
-        #
-        # Requests whose entire objective is simply to locate a
-        # file/folder should not require a 60-step visual mission.
-        # Use FileIntelligence directly and return the path when
-        # confidence is strong.
-        ########################################################
-
-        fast_find = (
-            self._try_fast_filesystem_find()
-        )
-
-        if fast_find is not None:
-
-            return fast_find
-
-        ########################################################
         # STATE
         ########################################################
 
@@ -265,6 +248,23 @@ class ComputerUseAgent:
                 "State start warning:",
                 exc
             )
+
+        ########################################################
+        # FAST FILESYSTEM FIND
+        #
+        # Requests whose entire objective is simply to locate a
+        # file/folder should not require a 60-step visual mission.
+        # Use FileIntelligence directly and return the path when
+        # confidence is strong.
+        ########################################################
+
+        fast_find = (
+            self._try_fast_filesystem_find()
+        )
+
+        if fast_find is not None:
+
+            return fast_find
 
         ########################################################
         # PLAN
@@ -3561,6 +3561,11 @@ Return ONLY valid JSON:
                 best["path"]
             )
 
+            try:
+                self.state.complete()
+            except Exception:
+                pass
+
             return (
                 "I found it, sir. "
                 f"{best['name']} is at "
@@ -3581,6 +3586,13 @@ Return ONLY valid JSON:
             )
 
         if lines:
+
+            try:
+                self.state.fail(
+                    "Filesystem search returned multiple possible matches."
+                )
+            except Exception:
+                pass
 
             return (
                 "I found several possible matches, sir:\n"

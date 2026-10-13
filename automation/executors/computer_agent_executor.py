@@ -347,8 +347,51 @@ class ComputerAgentExecutor(
             )
 
         ####################################################
-        # The existing ComputerUseAgent's successful run is
-        # treated as the computer-layer completion result.
+        # A non-empty message is not proof of success.
+        # The agent's state is authoritative: BLOCKED,
+        # cancelled, and step-limit exits mark it failed.
+        ####################################################
+
+        agent_state = getattr(
+            self.agent,
+            "state",
+            None,
+        )
+
+        agent_status = str(
+            getattr(
+                agent_state,
+                "status",
+                "",
+            )
+            or ""
+        ).strip().lower()
+
+        if agent_status != "completed":
+
+            reason = (
+                "ComputerUseAgent did not verify task completion "
+                f"(state: {agent_status or 'unknown'})."
+            )
+
+            computer_task.fail(reason)
+
+            return StepResult(
+                success=False,
+                result=result,
+                error=reason,
+                executor=self.name,
+                metadata={
+                    "verified": False,
+                    "agent_status": agent_status or "unknown",
+                    "computer_task":
+                        computer_task.to_dict(),
+                },
+            )
+
+        ####################################################
+        # Only the agent's explicit completed state qualifies
+        # as a successful computer-layer result.
         ####################################################
 
         computer_task.complete(
