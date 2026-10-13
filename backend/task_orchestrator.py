@@ -649,6 +649,20 @@ class TaskOrchestrator:
             context=context,
         )
 
+        # Cancellation can happen while an executor is running. The
+        # interrupt handler marks the task and step CANCELLED immediately,
+        # but the executor may still return a result afterwards. Do not let
+        # verification/recovery overwrite that terminal cancellation state.
+        if task.is_cancelled() or step.status == StepStatus.CANCELLED:
+            reason = task.error or step.error or self.interrupt.reason or "Task interrupted by user."
+            task.current_step_id = None
+            return StepResult(
+                success=False,
+                error=reason,
+                executor=executor.name,
+                metadata={"cancelled": True},
+            )
+
         if not isinstance(result, StepResult):
 
             result = StepResult(
