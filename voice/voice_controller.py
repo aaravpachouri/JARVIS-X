@@ -278,6 +278,13 @@ class VoiceController(QObject):
 
         self.busy = True
 
+        # Do not let the one-shot listener auto-restart while the
+        # command is being processed. commandFinished() re-enables it.
+        self.autoRestart = False
+
+        if self.worker is not None:
+            self.worker.stop()
+
         print(
             f"[Voice] Command: {command}"
         )
@@ -300,6 +307,7 @@ class VoiceController(QObject):
     ):
 
         self.busy = False
+        self.autoRestart = True
 
         if not self.running:
 
