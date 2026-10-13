@@ -102,7 +102,7 @@ class LocalAIClient:
             }
         )
 
-        response = ollama.chat(
+        response = self.client.chat(
             model=self.model,
             messages=messages,
             options={
