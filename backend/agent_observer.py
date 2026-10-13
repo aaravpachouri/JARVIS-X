@@ -14,7 +14,7 @@ class AgentObserver:
     Responsibilities:
         - Capture the current screen
         - Keep screenshots outside the Desktop
-        - Reuse one temporary screenshot
+        - Keep temporary screenshots isolated between observations
         - Read screenshot bytes
         - Perform OCR
         - Compress OCR output for the local model
