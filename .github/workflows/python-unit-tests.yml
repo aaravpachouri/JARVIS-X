@@ -30,7 +30,7 @@ jobs:
           cache: pip
 
       - name: Install test runner
-        run: python -m pip install --upgrade pip pytest
+        run: python -m pip install --upgrade pip pytest pillow
 
       - name: Run unit tests
         run: python -m pytest -q
