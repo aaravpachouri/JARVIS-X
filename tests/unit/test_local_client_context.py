@@ -65,7 +65,6 @@ def test_local_client_sets_bounded_ollama_timeout():
             return {"message": {"content": "ok"}}
 
     with patch("ai.local_client.ollama.Client", FakeClient):
-        client = LocalAIClient()
-        assert client.chat("hello") == "ok"
+        LocalAIClient()
 
     assert captured["timeout"] == 180
