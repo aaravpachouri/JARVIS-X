@@ -22,6 +22,7 @@ computer_agent_module.ComputerUseAgent = UnusedComputerUseAgent
 sys.modules.setdefault("backend.computer_agent", computer_agent_module)
 
 from automation.executors.computer_agent_executor import ComputerAgentExecutor
+from backend.agent_run_gate import ComputerAgentBusyError
 from backend.task_orchestrator import TaskStep
 
 
@@ -36,7 +37,8 @@ class FakeComputerAgent:
 
     def run(self, goal):
         if isinstance(self.result, Exception):
-            self.cancelled = True
+            if not isinstance(self.result, ComputerAgentBusyError):
+                self.cancelled = True
             raise self.result
         return self.result
 
@@ -117,3 +119,22 @@ def test_exception_after_cancellation_is_classified_as_cancelled():
     assert result.metadata["cancelled"] is True
     assert result.metadata["computer_task"]["status"] == "CANCELLED"
     assert "Engine operation interrupted" in result.error
+
+
+
+def test_overlapping_run_is_reported_as_busy_not_completion_failure():
+    busy_message = (
+        "Another computer task is already running, sir. "
+        "Wait for it to finish or cancel it before starting another."
+    )
+    executor = ComputerAgentExecutor(
+        agent=FakeComputerAgent("running", ComputerAgentBusyError())
+    )
+
+    result = executor.execute(make_step())
+
+    assert result.success is False
+    assert result.error == busy_message
+    assert result.metadata["busy"] is True
+    assert result.metadata["computer_task"]["status"] == "FAILED"
+    assert "agent_status" not in result.metadata
