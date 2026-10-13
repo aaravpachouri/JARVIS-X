@@ -1264,9 +1264,17 @@ class ComputerUseAgent:
 
         try:
 
-            self.state.fail(
-                message
+            cancel_state = getattr(
+                self.state,
+                "cancel",
+                None,
             )
+
+            if callable(cancel_state):
+                cancel_state(message)
+            else:
+                # Compatibility fallback for older state objects.
+                self.state.fail(message)
 
         except Exception:
             pass
