@@ -35,6 +35,9 @@ class FakeComputerAgent:
         return bool(goal)
 
     def run(self, goal):
+        if isinstance(self.result, Exception):
+            self.cancelled = True
+            raise self.result
         return self.result
 
     def is_cancelled(self):
@@ -98,3 +101,19 @@ def test_none_result_fails_even_if_agent_claims_completed():
 
     assert result.success is False
     assert "returned no result" in result.error
+
+
+def test_exception_after_cancellation_is_classified_as_cancelled():
+    executor = ComputerAgentExecutor(
+        agent=FakeComputerAgent(
+            "running",
+            InterruptedError("Engine operation interrupted"),
+        )
+    )
+
+    result = executor.execute(make_step())
+
+    assert result.success is False
+    assert result.metadata["cancelled"] is True
+    assert result.metadata["computer_task"]["status"] == "CANCELLED"
+    assert "Engine operation interrupted" in result.error
