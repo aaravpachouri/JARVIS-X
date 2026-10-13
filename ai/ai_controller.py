@@ -4,6 +4,11 @@ import threading
 
 from ai.router import AIRouter
 
+from backend.legacy_action_policy import (
+    LEGACY_BLOCKED_ACTIONS,
+    find_legacy_blocked_actions,
+)
+
 from core.actions import (
     Action as CoreAction,
     ActionType,
@@ -61,28 +66,11 @@ class AIController:
     # workflow. Refuse sensitive actions on that fallback path rather than
     # letting an LLM response invoke arbitrary shell/code or destructive
     # system/filesystem operations directly.
-    LEGACY_BLOCKED_ACTIONS = {
-        "RUN_COMMAND",
-        "RUN_PYTHON",
-        "DELETE_FILE",
-        "DELETE_FOLDER",
-        "SHUTDOWN",
-        "RESTART",
-        "SLEEP",
-    }
+    LEGACY_BLOCKED_ACTIONS = LEGACY_BLOCKED_ACTIONS
 
     @classmethod
     def _legacy_blocked_actions(cls, actions):
-        blocked = []
-        for action in actions:
-            name = getattr(
-                getattr(action, "action", None),
-                "name",
-                "",
-            )
-            if name in cls.LEGACY_BLOCKED_ACTIONS:
-                blocked.append(name)
-        return sorted(set(blocked))
+        return find_legacy_blocked_actions(actions)
 
 
     ############################################################
