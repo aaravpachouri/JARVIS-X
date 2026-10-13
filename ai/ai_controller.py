@@ -57,6 +57,20 @@ class AIController:
 
     INTERRUPTED_RESULT = "__JARVIS_INTERRUPT__"
 
+    # The legacy router does not have a trustworthy per-action approval
+    # workflow. Refuse sensitive actions on that fallback path rather than
+    # letting an LLM response invoke arbitrary shell/code or destructive
+    # system/filesystem operations directly.
+    LEGACY_BLOCKED_ACTIONS = {
+        "RUN_COMMAND",
+        "RUN_PYTHON",
+        "DELETE_FILE",
+        "DELETE_FOLDER",
+        "SHUTDOWN",
+        "RESTART",
+        "SLEEP",
+    }
+
     ############################################################
     # INITIALIZATION
     ############################################################
@@ -1121,6 +1135,31 @@ class AIController:
                     f"{action.action.name} "
                     f"{action.parameters}"
                 )
+
+            blocked_actions = [
+                getattr(
+                    getattr(action, "action", None),
+                    "name",
+                    "",
+                )
+                for action in actions
+                if getattr(
+                    getattr(action, "action", None),
+                    "name",
+                    "",
+                ) in self.LEGACY_BLOCKED_ACTIONS
+            ]
+
+            if blocked_actions:
+                message = (
+                    "I blocked this request because the legacy execution "
+                    "path cannot safely obtain explicit approval for: "
+                    + ", ".join(sorted(set(blocked_actions)))
+                    + ". Please use a dedicated confirmed workflow."
+                )
+                print("[AIController] Legacy high-risk action blocked:", blocked_actions)
+                self._speak(message)
+                return message
 
             result = (
                 self.engine.execute(
