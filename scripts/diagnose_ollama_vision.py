@@ -12,6 +12,13 @@ import tempfile
 import time
 from pathlib import Path
 
+# Executing a file inside scripts/ puts that directory, not the repository
+# root, at sys.path[0]. Add the detected project root so `ai.local_client`
+# resolves reliably even when launched from another working directory.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
