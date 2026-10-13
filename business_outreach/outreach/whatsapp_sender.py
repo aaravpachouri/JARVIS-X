@@ -41,7 +41,7 @@ class WhatsAppSender:
             print("[WhatsApp] A lead is required.")
             return False
 
-        if getattr(lead, "approval_required", True) and not getattr(lead, "approved", False):
+        if not getattr(lead, "approved", False):
             print(
                 f"[WhatsApp] Outreach blocked for {lead.name}: "
                 "explicit lead approval is required."
