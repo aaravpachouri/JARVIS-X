@@ -59,6 +59,8 @@ class ComputerUseAgent:
             or LocalAIClient()
         )
 
+        self.model_name = getattr(self.ai, "model", self.MODEL_NAME)
+
         self.engine = (
             engine
             or AutomationEngine()
@@ -166,7 +168,7 @@ class ComputerUseAgent:
 
         print(
             f"[ComputerAgent] Brain: "
-            f"{self.MODEL_NAME}"
+            f"{self.model_name}"
         )
 
     ############################################################
@@ -336,7 +338,7 @@ class ComputerUseAgent:
                         goal,
 
                     "brain":
-                        self.MODEL_NAME
+                        self.model_name
                 }
             )
 
