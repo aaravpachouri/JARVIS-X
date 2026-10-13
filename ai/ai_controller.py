@@ -71,6 +71,20 @@ class AIController:
         "SLEEP",
     }
 
+    @classmethod
+    def _legacy_blocked_actions(cls, actions):
+        blocked = []
+        for action in actions:
+            name = getattr(
+                getattr(action, "action", None),
+                "name",
+                "",
+            )
+            if name in cls.LEGACY_BLOCKED_ACTIONS:
+                blocked.append(name)
+        return sorted(set(blocked))
+
+
     ############################################################
     # INITIALIZATION
     ############################################################
@@ -1136,19 +1150,7 @@ class AIController:
                     f"{action.parameters}"
                 )
 
-            blocked_actions = [
-                getattr(
-                    getattr(action, "action", None),
-                    "name",
-                    "",
-                )
-                for action in actions
-                if getattr(
-                    getattr(action, "action", None),
-                    "name",
-                    "",
-                ) in self.LEGACY_BLOCKED_ACTIONS
-            ]
+            blocked_actions = self._legacy_blocked_actions(actions)
 
             if blocked_actions:
                 message = (
