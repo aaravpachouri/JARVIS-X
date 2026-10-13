@@ -90,3 +90,12 @@ def test_whatsapp_sender_opens_chat_only_after_approval():
 def test_phone_normalizer_rejects_unsupported_lengths():
     sender = WhatsAppSender()
     assert sender._normalize_phone("12345") == ""
+
+def test_whatsapp_sender_still_requires_approval_when_flag_is_disabled():
+    lead = make_lead(approval_required=False, approved=False)
+    sender = WhatsAppSender(dry_run=False)
+
+    with patch("business_outreach.outreach.whatsapp_sender.webbrowser.open") as open_browser:
+        assert sender.send(lead, "Hello") is False
+
+    open_browser.assert_not_called()
