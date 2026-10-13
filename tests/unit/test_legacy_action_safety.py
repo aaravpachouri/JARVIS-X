@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from ai.ai_controller import AIController
+from backend.legacy_action_policy import find_legacy_blocked_actions
 
 
 def action(name):
@@ -15,7 +15,7 @@ def test_legacy_execution_blocks_shell_python_and_destructive_actions():
         action("SHUTDOWN"),
     ]
 
-    assert AIController._legacy_blocked_actions(actions) == [
+    assert find_legacy_blocked_actions(actions) == [
         "DELETE_FILE",
         "RUN_COMMAND",
         "RUN_PYTHON",
