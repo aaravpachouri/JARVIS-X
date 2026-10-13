@@ -52,7 +52,10 @@ class LocalAIClient:
             model=self.model,
             messages=messages,
             options={
-                "temperature": 0.1
+                "temperature": 0.1,
+                # The computer-agent prompt plus screenshot can exceed
+                # Ollama's common 4096-token default.
+                "num_ctx": 8192,
             }
         )
 
@@ -100,7 +103,10 @@ class LocalAIClient:
             model=self.model,
             messages=messages,
             options={
-                "temperature": 0.05
+                "temperature": 0.05,
+                # Keep vision reasoning within a context window large
+                # enough for the agent's instructions and working memory.
+                "num_ctx": 8192,
             }
         )
 
