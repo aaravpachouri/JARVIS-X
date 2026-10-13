@@ -6,6 +6,8 @@ import time
 from collections import deque
 from pathlib import Path
 from ai.local_client import LocalAIClient
+from backend.agent_run_gate import GLOBAL_COMPUTER_AGENT_RUN_GATE
+from backend.consecutive_failure_guard import ConsecutiveFailureGuard
 
 from automation.executors.engine import AutomationEngine
 from automation.services.spreadsheet_service import SpreadsheetService
@@ -111,6 +113,10 @@ class ComputerUseAgent:
 
         self.failure_count = 0
 
+        self._brain_failure_guard = ConsecutiveFailureGuard(
+            limit=self.MAX_FAILURES
+        )
+
         self.last_failure = None
 
         ########################################################
@@ -185,17 +191,29 @@ class ComputerUseAgent:
         self,
         goal
     ):
+        """Run one computer task without allowing overlapping desktop loops."""
 
-        goal = str(
-            goal or ""
-        ).strip()
-
+        goal = str(goal or "").strip()
         if not goal:
+            return "No computer task received, sir."
 
-            return (
-                "No computer task received, sir."
+        if not GLOBAL_COMPUTER_AGENT_RUN_GATE.try_enter():
+            message = (
+                "Another computer task is already running, sir. "
+                "Wait for it to finish or cancel it before starting another."
             )
+            print("[ComputerAgent] Rejected overlapping run:", goal)
+            return message
 
+        try:
+            return self._run_locked(goal)
+        finally:
+            GLOBAL_COMPUTER_AGENT_RUN_GATE.leave()
+
+    def _run_locked(
+        self,
+        goal
+    ):
         ########################################################
         # RESET TASK
         ########################################################
@@ -213,6 +231,7 @@ class ComputerUseAgent:
         self.recent_actions.clear()
 
         self.failure_count = 0
+        self._brain_failure_guard.reset()
 
         self.last_failure = None
 
@@ -535,6 +554,8 @@ class ComputerUseAgent:
                         "Task interrupted while reasoning."
                     )
 
+                self._brain_failure_guard.record_success()
+
             except Exception as exc:
 
                 print()
@@ -556,6 +577,19 @@ class ComputerUseAgent:
                 self._cleanup_observation(
                     screenshot
                 )
+
+                failure_message = self._brain_failure_guard.record_failure(
+                    exc
+                )
+                if failure_message:
+                    print()
+                    print("[ComputerAgent] LOCAL BRAIN RETRY LIMIT REACHED")
+                    print(failure_message)
+                    try:
+                        self.state.fail(failure_message)
+                    except Exception:
+                        pass
+                    return failure_message
 
                 time.sleep(
                     self.OBSERVATION_DELAY
