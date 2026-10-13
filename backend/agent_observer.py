@@ -55,10 +55,9 @@ class AgentObserver:
             exist_ok=True
         )
 
-        self.current_path = (
-            self.temp_dir
-            / "current_screen.png"
-        )
+        # Each observation gets its own file. A shared filename can be
+        # deleted by one concurrent task while another task is using it.
+        self.current_path = None
 
     # ==================================================
     # CAPTURE
@@ -68,18 +67,21 @@ class AgentObserver:
         self
     ):
         """
-        Capture the current screen to one reusable
-        temporary file.
+        Capture the current screen to a unique temporary file.
 
-        The same filename is reused every time.
+        Unique paths prevent overlapping tasks from deleting or
+        replacing another task's screenshot while Ollama is reading it.
         """
 
-        path = self.current_path
-
-        # Remove previous capture first.
-        self.delete_temp(
-            path
+        handle = tempfile.NamedTemporaryFile(
+            prefix="jarvis_screen_",
+            suffix=".png",
+            dir=str(self.temp_dir),
+            delete=False,
         )
+        path = Path(handle.name)
+        handle.close()
+        path.unlink(missing_ok=True)
 
         saved = self.screenshot.save(
             str(path)
