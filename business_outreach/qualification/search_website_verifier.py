@@ -129,22 +129,15 @@ class SearchWebsiteVerifier:
         ####################################################
 
         if not results:
-
-            ################################################
-            # The search completed successfully but found
-            # nothing that can be associated with the
-            # business.
-            #
-            # For outreach qualification this is treated
-            # as "no website found/listed".
-            ################################################
-
-            return self._no_website(
+            # A lack of search results is not proof that a business
+            # has no website. Search providers can be incomplete,
+            # rate-limited, or unable to index the business.
+            return self._unknown(
                 reason=(
-                    "Search completed but no website "
-                    "result was found for this business."
+                    "Search returned no results; website status "
+                    "cannot be established."
                 ),
-                confidence=0.70,
+                source="web_search",
             )
 
         ####################################################
@@ -213,35 +206,21 @@ class SearchWebsiteVerifier:
             }
 
         ####################################################
-        # NO WEBSITE MATCH
-        #
-        # IMPORTANT:
-        #
-        # A search that completes successfully but does not
-        # produce a convincing business-domain match is
-        # treated as a no-website candidate by the current
-        # outreach workflow.
+        # NO CONVINCING WEBSITE MATCH
         ####################################################
 
-        return self._no_website(
+        # An unmatched search result is inconclusive, not evidence
+        # that the business has no website. Keep it out of outreach
+        # until a separate, reliable signal can establish status.
+        return self._unknown(
             reason=str(
                 match.get(
                     "reason",
-                    (
-                        "Search completed but no "
-                        "official website could be "
-                        "associated with the business."
-                    ),
+                    "No convincing official website match was found.",
                 )
             ),
-            confidence=(
-                self._no_website_confidence(
-                    match.get(
-                        "confidence",
-                        0.0,
-                    )
-                )
-            ),
+            confidence=0.0,
+            source="web_search",
         )
 
     ########################################################

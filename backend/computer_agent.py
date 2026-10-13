@@ -59,6 +59,8 @@ class ComputerUseAgent:
             or LocalAIClient()
         )
 
+        self.model_name = getattr(self.ai, "model", self.MODEL_NAME)
+
         self.engine = (
             engine
             or AutomationEngine()
@@ -166,7 +168,7 @@ class ComputerUseAgent:
 
         print(
             f"[ComputerAgent] Brain: "
-            f"{self.MODEL_NAME}"
+            f"{self.model_name}"
         )
 
     ############################################################
@@ -336,7 +338,7 @@ class ComputerUseAgent:
                         goal,
 
                     "brain":
-                        self.MODEL_NAME
+                        self.model_name
                 }
             )
 
@@ -365,7 +367,7 @@ class ComputerUseAgent:
 
         print(
             f"[ComputerAgent] Model: "
-            f"{self.MODEL_NAME}"
+            f"{self.model_name}"
         )
 
         try:
@@ -545,7 +547,7 @@ class ComputerUseAgent:
 
                 print(
                     "[ComputerAgent] THINK: Sending screenshot and prompt "
-                    f"to {self.MODEL_NAME} (timeout: "
+                    f"to {self.model_name} (timeout: "
                     f"{getattr(self.ai, 'REQUEST_TIMEOUT_SECONDS', 180)}s)..."
                 )
                 inference_started = time.monotonic()

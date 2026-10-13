@@ -327,7 +327,7 @@ class WakeDetector:
     # LISTEN
     ##################################################
 
-    def listen(self):
+    def listen(self, stop_event=None):
 
         self._reset()
 
@@ -345,11 +345,12 @@ class WakeDetector:
             callback=self._audioCallback
         ):
 
-            while True:
+            while stop_event is None or not stop_event.is_set():
 
-                audio = (
-                    self.audioQueue.get()
-                )
+                try:
+                    audio = self.audioQueue.get(timeout=0.25)
+                except queue.Empty:
+                    continue
 
                 ##################################################
                 # DOUBLE CLAP
@@ -393,6 +394,8 @@ class WakeDetector:
                         self.model.reset()
 
                         return "WAKE"
+
+        return "STOP"
 
     ##################################################
     # TEST
