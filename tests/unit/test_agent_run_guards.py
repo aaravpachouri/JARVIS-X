@@ -42,3 +42,20 @@ def test_success_resets_consecutive_failure_count():
 def test_failure_guard_requires_positive_limit():
     with pytest.raises(ValueError):
         ConsecutiveFailureGuard(limit=0)
+
+
+
+def test_run_gate_raises_typed_busy_error_without_releasing_active_owner():
+    from backend.agent_run_gate import ComputerAgentBusyError
+
+    gate = AgentRunGate()
+    gate.enter_or_raise()
+
+    try:
+        with pytest.raises(ComputerAgentBusyError, match="already running"):
+            gate.enter_or_raise()
+    finally:
+        gate.leave()
+
+    assert gate.try_enter() is True
+    gate.leave()
