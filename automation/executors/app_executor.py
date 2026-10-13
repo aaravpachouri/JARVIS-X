@@ -167,6 +167,25 @@ class AppExecutor:
             / "System32"
         )
 
+        # Desktop applications such as Chrome are commonly installed
+        # outside PATH. Check standard per-machine and per-user locations.
+        if key in {"chrome", "google chrome"}:
+            install_roots = [
+                os.environ.get("ProgramFiles", r"C:\\Program Files"),
+                os.environ.get("ProgramFiles(x86)", r"C:\\Program Files (x86)"),
+                os.environ.get("LocalAppData", ""),
+            ]
+            for root in install_roots:
+                if not root:
+                    continue
+                for relative in (
+                    Path("Google") / "Chrome" / "Application" / "chrome.exe",
+                    Path("Programs") / "Google" / "Chrome" / "Application" / "chrome.exe",
+                ):
+                    candidate = Path(root) / relative
+                    if candidate.is_file():
+                        return str(candidate.resolve())
+
         ####################################################
         # Known Windows/system executables
         ####################################################
