@@ -68,3 +68,15 @@ def test_local_client_sets_bounded_ollama_timeout():
         LocalAIClient()
 
     assert captured["timeout"] == 180
+
+
+def test_local_client_uses_computer_vision_model_by_default(monkeypatch):
+    monkeypatch.delenv("JARVIS_LOCAL_MODEL", raising=False)
+    client = LocalAIClient()
+    assert client.model == "qwen3-vl:4b-instruct"
+
+
+def test_local_client_model_can_be_configured(monkeypatch):
+    monkeypatch.setenv("JARVIS_LOCAL_MODEL", "qwen3-vl:4b")
+    client = LocalAIClient()
+    assert client.model == "qwen3-vl:4b"
