@@ -616,6 +616,24 @@ class TaskOrchestrator:
             context or {}
         )
 
+        # An interruption can arrive after the preflight checks above.
+        # Convert it into a normal cancellation result so callers do not
+        # receive an uncaught InterruptedError and leave the task active.
+        try:
+            self.interrupt.check()
+        except InterruptedError as exc:
+            reason = str(exc) or "Task interrupted by user."
+            task.cancel(reason)
+            self.cancelled_task_ids.add(task.task_id)
+            if self.active_task_id == task.task_id:
+                self.active_task_id = None
+            return StepResult(
+                success=False,
+                error=reason,
+                executor=executor.name,
+                metadata={"cancelled": True},
+            )
+
         # The orchestrator owns interruption internally.
         #
         # Do not inject the live TaskInterruptController or its
@@ -626,8 +644,6 @@ class TaskOrchestrator:
         # task context. Interruption is checked by the orchestrator
         # before execution, and task interruption remains owned by
         # self.interrupt.
-        self.interrupt.check()
-
         result = executor.execute(
             step,
             context=context,
