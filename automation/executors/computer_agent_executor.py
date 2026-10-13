@@ -286,6 +286,42 @@ class ComputerAgentExecutor(
 
         except Exception as exc:
 
+            ################################################
+            # A cancellation request can interrupt an active
+            # engine operation by raising an exception. Check
+            # the agent's cancellation signal before recording
+            # this as an ordinary execution failure.
+            ################################################
+
+            try:
+                cancelled = self.agent.is_cancelled()
+            except Exception:
+                cancelled = False
+
+            if cancelled:
+                reason = str(
+                    getattr(
+                        self.agent,
+                        "_cancel_reason",
+                        "",
+                    )
+                    or str(exc).strip()
+                    or "Computer task was cancelled."
+                )
+
+                computer_task.cancel(reason)
+
+                return StepResult(
+                    success=False,
+                    error=reason,
+                    executor=self.name,
+                    metadata={
+                        "cancelled": True,
+                        "computer_task":
+                            computer_task.to_dict(),
+                    },
+                )
+
             computer_task.fail(
                 str(
                     exc
