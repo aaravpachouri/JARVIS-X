@@ -5,6 +5,7 @@ from concurrent.futures import (
     ThreadPoolExecutor,
     as_completed,
 )
+from threading import Lock
 from typing import Any, Callable, Iterable
 
 
@@ -41,6 +42,9 @@ class AsyncExecutor:
             thread_name_prefix="JARVIS"
         )
 
+        self._futures: set[Future] = set()
+        self._futures_lock = Lock()
+
     ########################################################
     # SUBMIT
     ########################################################
@@ -60,11 +64,28 @@ class AsyncExecutor:
                 "handler must be callable."
             )
 
-        return self._pool.submit(
+        future = self._pool.submit(
             handler,
             *args,
             **kwargs,
         )
+
+        with self._futures_lock:
+            self._futures.add(future)
+
+        future.add_done_callback(
+            self._forget_future
+        )
+
+        return future
+
+    def _forget_future(
+        self,
+        future: Future,
+    ) -> None:
+
+        with self._futures_lock:
+            self._futures.discard(future)
 
     ########################################################
     # RUN MANY
@@ -113,7 +134,18 @@ class AsyncExecutor:
         self,
     ) -> None:
 
-        for future in []:
+        """
+        Cancel work that has not started yet.
+
+        Python cannot safely force-stop a running thread; active
+        handlers must use their own cooperative cancellation
+        mechanism if they need to stop early.
+        """
+
+        with self._futures_lock:
+            futures = tuple(self._futures)
+
+        for future in futures:
             future.cancel()
 
     ########################################################
