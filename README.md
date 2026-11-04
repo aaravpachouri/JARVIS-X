@@ -306,6 +306,11 @@ Third-Party Components
 JARVIS X may use open-source libraries, models, and other external components.
 Third-party software remains subject to its respective license and attribution requirements.
 Downloaded model weights and bundled third-party source are intentionally excluded from this repository unless redistribution rights have been verified.
+Execution Paths and Safety Scope
+Two controller implementations exist in this repository:
+- `backend/ai_controller.py` — the live controller. `ui/main_window.py` imports this one, and it is the only controller that runs when the application starts. Shell and Python execution (`RUN_COMMAND`, `RUN_PYTHON`) are blocked here by `backend/agent_policy.py`, which rejects them before `AutomationEngine` can reach `TerminalExecutor`.
+- `ai/ai_controller.py` — a legacy controller that is currently not imported anywhere. It contains an additional guard (`backend/legacy_action_policy.py`) that refuses the same sensitive actions on its fallback path. That guard is correct but dormant: it does not protect the running application, because this module does not run. The safety of the live path rests on `backend/agent_policy.py`, not on this guard.
+`ai/ai_controller.py` is scheduled for removal. Until then, do not treat the legacy guard as a safety boundary for the running application.
 Current Status
 Work in Progress
 JARVIS X is an evolving personal AI-agent project.

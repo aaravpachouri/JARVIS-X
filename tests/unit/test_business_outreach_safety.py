@@ -91,7 +91,14 @@ def test_phone_normalizer_rejects_unsupported_lengths():
     sender = WhatsAppSender()
     assert sender._normalize_phone("12345") == ""
 
-def test_whatsapp_sender_still_requires_approval_when_flag_is_disabled():
+
+def test_whatsapp_sender_ignores_lead_approval_required_flag():
+    """The sender must gate on lead.approved only.
+
+    BusinessLead.approval_required is advisory metadata about whether a
+    lead needs approval; it is NOT a bypass. Even when it is set to False,
+    an unapproved lead must still be blocked.
+    """
     lead = make_lead(approval_required=False, approved=False)
     sender = WhatsAppSender(dry_run=False)
 
@@ -99,3 +106,21 @@ def test_whatsapp_sender_still_requires_approval_when_flag_is_disabled():
         assert sender.send(lead, "Hello") is False
 
     open_browser.assert_not_called()
+
+    # And the flag must not be what decided it: flipping it changes nothing.
+    lead.approval_required = True
+    with patch("business_outreach.outreach.whatsapp_sender.webbrowser.open") as open_browser:
+        assert sender.send(lead, "Hello") is False
+
+    open_browser.assert_not_called()
+
+
+def test_whatsapp_sender_reads_only_the_approved_attribute():
+    """Prove the sender consults lead.approved, not approval_required."""
+    lead = make_lead(approval_required=False, approved=True)
+    sender = WhatsAppSender(dry_run=False)
+
+    with patch("business_outreach.outreach.whatsapp_sender.webbrowser.open", return_value=True) as open_browser:
+        assert sender.send(lead, "Hello") is True
+
+    open_browser.assert_called_once()
