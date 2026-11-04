@@ -15,6 +15,7 @@ before import, the same way tests/unit/test_local_client_context.py stubs
 ollama. Nothing here touches a real screen, keyboard, clipboard or shell.
 """
 
+import importlib.util
 import sys
 from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
@@ -30,11 +31,37 @@ import pytest
 # not installed in CI and must not be installed for these tests.
 ############################################################
 
-def _module(name, **attrs):
-    """Register a stub module, marked as a package so submodules work."""
+def _installed(name):
+    """True when this module is already loaded, or is installed.
+
+    A module already present in sys.modules counts as installed: whatever
+    is there is the real thing, or a test-owned stand-in, and must not be
+    replaced by ours.
+    """
 
     if name in sys.modules:
-        return sys.modules[name]
+        return True
+
+    try:
+        return importlib.util.find_spec(name) is not None
+    except (ImportError, ValueError):
+        # A module in sys.modules without a __spec__ raises ValueError from
+        # find_spec. It is still present, so it is not ours to replace.
+        return name in sys.modules
+
+
+def _module(name, **attrs):
+    """Register a stub module, marked as a package so submodules work.
+
+    A module that is genuinely installed is never stubbed. Overwriting a
+    real dependency with an inert stand-in would silently break any other
+    test that imports it later in the same session - Pillow is installed
+    in CI, so stubbing PIL here would shadow the real Pillow for
+    tests/unit/test_local_client_context.py.
+    """
+
+    if _installed(name):
+        return None
 
     stub = ModuleType(name)
     stub.__path__ = []
@@ -107,7 +134,7 @@ def _install_stubs():
     # OCR service, so it needs a few real attributes.
     ########################################################
 
-    numpy = _module(
+    _module(
         "numpy",
         ndarray=Inert,
         array=lambda *a, **k: [],
