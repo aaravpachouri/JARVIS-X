@@ -40,6 +40,11 @@ class AgentPolicy:
         "SHUTDOWN",
         "RESTART",
         "SLEEP",
+        # These can execute arbitrary commands or code. They must not be
+        # available through autonomous computer-agent plans without a
+        # separate, explicit approval mechanism.
+        "RUN_COMMAND",
+        "RUN_PYTHON",
     }
 
     ############################################################

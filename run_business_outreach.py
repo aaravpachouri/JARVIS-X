@@ -365,6 +365,11 @@ def main():
 
         if choice == "y":
 
+            # The interactive "y" is the explicit approval for this
+            # individual lead/message. WhatsAppSender enforces this
+            # approval flag before opening an external chat.
+            lead.approved = True
+
             print(
                 "\nOpening WhatsApp..."
             )

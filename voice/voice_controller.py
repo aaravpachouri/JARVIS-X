@@ -1,3 +1,5 @@
+import threading
+
 from PySide6.QtCore import (
     QObject,
     QThread,
@@ -590,6 +592,7 @@ class VoiceWorker(QObject):
         self.active = active
 
         self.running = True
+        self._stop_event = threading.Event()
 
     ##################################################
     # STOP
@@ -600,6 +603,7 @@ class VoiceWorker(QObject):
     ):
 
         self.running = False
+        self._stop_event.set()
 
     ##################################################
     # LISTEN
@@ -628,8 +632,8 @@ class VoiceWorker(QObject):
                     "waiting for Hey JARVIS..."
                 )
 
-                event = (
-                    self.wakeDetector.listen()
+                event = self.wakeDetector.listen(
+                    stop_event=self._stop_event
                 )
 
                 if not self.running:
