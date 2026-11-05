@@ -171,9 +171,6 @@ class AgentToolset:
         "CLICK_TEXT",
         "CLICK_TYPE_ENTER",
 
-        "RUN_COMMAND",
-        "RUN_PYTHON",
-
         "VOLUME",
         "BRIGHTNESS",
 
