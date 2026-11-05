@@ -365,3 +365,18 @@ def test_ordinary_actions_are_not_policy_rejected():
     )
 
     assert recorder.calls == ["OPEN_URL"]
+
+def test_shell_tools_are_not_advertised_in_agent_prompts_or_catalogs():
+    from ai.tools import TOOLS
+
+    agent, engine, terminal = build_agent()
+    prompt = agent._build_prompt("Open YouTube", 1, {})
+
+    assert "RUN_COMMAND" not in prompt
+    assert "RUN_PYTHON" not in prompt
+    assert "RUN_COMMAND" not in TOOLS
+    assert "RUN_PYTHON" not in TOOLS
+
+    available = agent.tools.available()
+    assert "RUN_COMMAND" not in available
+    assert "RUN_PYTHON" not in available

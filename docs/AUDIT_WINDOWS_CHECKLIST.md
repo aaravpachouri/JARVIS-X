@@ -30,7 +30,17 @@ ollama run qwen3-vl:4b-instruct "Reply with only OK"
 
 The text-only response confirms text inference only. It does not confirm that the model accepts and interprets screenshots. Confirm that the model tag shown by JARVIS matches the model actually configured. To use another installed model, set `JARVIS_LOCAL_MODEL` before launching JARVIS.
 
-## 4. Test vision independently of the app\n\nRun the isolated smoke test from the repository root with the same activated environment used to launch JARVIS:\n\n```powershell\npython scripts/diagnose_ollama_vision.py\n```\n\nIt captures one screenshot, sends a read-only description request to the configured local model, reports elapsed time, and deletes its temporary screenshot. It does not start the voice listener or execute desktop actions. If you prefer, test an existing image with `python scripts/diagnose_ollama_vision.py --image path\\to\\image.png`.\n\n## 5. Reproduce the computer-agent task with diagnostics visible
+## 4. Test vision independently of the app
+
+Run the isolated smoke test from the repository root with the same activated environment used to launch JARVIS:
+
+```powershell
+python scripts/diagnose_ollama_vision.py
+```
+
+It captures one screenshot, sends a read-only description request to the configured local model, reports elapsed time, and deletes its temporary screenshot. It does not start the voice listener or execute desktop actions. If you prefer, test an existing image with `python scripts/diagnose_ollama_vision.py --image path\to\image.png`.
+
+## 5. Reproduce the computer-agent task with diagnostics visible
 
 Launch JARVIS from the same terminal so logs remain visible. Ask it to open YouTube. Record:
 - Whether `OBSERVE: Capturing screenshot` appears.
